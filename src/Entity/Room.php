@@ -21,7 +21,7 @@ class Room
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Assert|NotBlank
+     * @Assert\NotBlank
      */
     private $name;
 
@@ -55,7 +55,20 @@ class Room
         $this->games = new ArrayCollection();
     }
 
-
+    public function removeClient(Client $client){
+        if ($this->us1 == $client){
+            $this->us1 = null;
+        }
+        if ($this->us2 == $client){
+            $this->us2 = null;
+        }
+        if ($this->them1 == $client){
+            $this->them1 = null;
+        }
+        if ($this->them2 == $client){
+            $this->them2 = null;
+        }
+    }
 
     public function getId(): ?int
     {
@@ -122,6 +135,10 @@ class Room
         return $this;
     }
 
+    public function getGame() {
+        return $this->games->last();
+    }
+
     /**
      * @return Collection|Game[]
      */
@@ -157,19 +174,22 @@ class Room
         return $this;
     }
 
+    public function isFull(){
+        return !is_null($this->us1) && !is_null($this->us2) && !is_null($this->them1) && !is_null($this->them2);
+    }
+
     public function toArray()
     {
         return [
             'id' => $this->getId(),
             'name' => $this->getName(),
-            'us1' => $this->getUs1()->getId(),
-            'us2' => $this->getUs2()->getId(),
-            'them1' => $this->getThem1()->getId(),
-            'them2' => $this->getThem2()->getId(),
+            'us1' => is_null($this->getUs1()) ? false :  $this->getUs1()->toArray(),
+            'us2' => is_null($this->getUs2()) ? false :  $this->getUs2()->toArray(),
+            'them1' => is_null($this->getThem1()) ? false :  $this->getThem1()->toArray(),
+            'them2' => is_null($this->getThem2()) ? false :  $this->getThem2()->toArray(),
             'games' => array_map(function ($game) {
                 return $game->getId();
-                }, $this->getGames()),
+            }, $this->getGames()->toArray()),
         ];
     }
-
 }
