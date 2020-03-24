@@ -178,6 +178,22 @@ class Room
         return !is_null($this->us1) && !is_null($this->us2) && !is_null($this->them1) && !is_null($this->them2);
     }
 
+    public function hasClient(Client $client) {
+        if ($this->us1 == $client){
+            return true;
+        }
+        if ($this->us2 == $client){
+            return true;
+        }
+        if ($this->them1 == $client){
+            return true;
+        }
+        if ($this->them2 == $client){
+            return true;
+        }
+        return false;
+    }
+
     public function toArray()
     {
         return [

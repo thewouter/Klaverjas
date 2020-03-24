@@ -2,13 +2,16 @@
 
 namespace App\Controller;
 
+use App\Entity\Card;
 use App\Entity\Game;
 use App\Entity\Room;
 use App\Entity\Trick;
 use App\Repository\CardRepository;
 use App\Repository\ClientRepository;
 use App\Repository\RoomRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
+use http\Client;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -98,10 +101,6 @@ class GameController extends AbstractController
             $points = $data['points'];
             $game->setPoints($points);
         }
-        if (array_key_exists('tricks', $data)){
-            $tricks = $data['tricks'];
-            $game->setTricks($tricks);
-        }
         if (array_key_exists('room', $data)){
             return new JsonResponse([
                 'status' => "FAILED",
@@ -114,12 +113,12 @@ class GameController extends AbstractController
     }
 
     /**
-     * @Route("/{game}/deal", name="game_deal", methods={"POST"})
+     * @Route("/{game}/start", name="game_deal", methods={"POST"})
      * @param Game $game
      * @param CardRepository $cardRepository
      * @return JsonResponse
      */
-    public function deal(Game $game, CardRepository $cardRepository, EntityManagerInterface $entityManager){
+    public function start(Game $game, CardRepository $cardRepository, EntityManagerInterface $entityManager){
         $room = $game->getRoom();
         $us1 = $room->getUs1();
         $us2 = $room->getUs2();
@@ -140,14 +139,16 @@ class GameController extends AbstractController
         $us1->removeAllCards();
         $us1->addCards(array_slice($cards, 0, 8));
         $us2->removeAllCards();
-        $us2->addCards(array_slice($cards, 8, 16));
+        $us2->addCards(array_slice($cards, 8, 8));
         $them1->removeAllCards();
-        $them1->addCards(array_slice($cards, 16, 24));
+        $them1->addCards(array_slice($cards, 16, 8));
         $them2->removeAllCards();
-        $them2->addCards(array_slice($cards, 24, 32));
+        $them2->addCards(array_slice($cards, 24, 8));
 
-//        Initialize the game by adding a new first trick
+        $game->setTricks(new ArrayCollection());
 
+
+//        Initialize the trick by adding a new first trick
         $trick = new Trick();
         $trick->setPlayer1($us1);
         $trick->setPlayer2($them1);

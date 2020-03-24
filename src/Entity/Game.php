@@ -60,7 +60,7 @@ class Game
         return $this->tricks;
     }
 
-    public function setTricks(array $tricks): self
+    public function setTricks(ArrayCollection $tricks): self
     {
         $this->tricks = $tricks;
 
