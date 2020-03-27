@@ -148,7 +148,7 @@ class GameController extends AbstractController
         $game->setTricks(new ArrayCollection());
 
 
-//        Initialize the trick by adding a new first trick
+//        Initialize the game by adding a new first trick
         $trick = new Trick();
         $trick->setPlayer1($us1);
         $trick->setPlayer2($them1);
@@ -157,6 +157,8 @@ class GameController extends AbstractController
         $entityManager->persist($trick);
 
         $game->addTrick($trick);
+
+        $game->getRoom()->setInGame(true);
 
         $entityManager->flush();
 

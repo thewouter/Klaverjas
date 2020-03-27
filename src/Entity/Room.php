@@ -26,22 +26,22 @@ class Room
     private $name;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Client", inversedBy="room", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="App\Entity\Client", cascade={"persist", "remove"})
      */
     private $us1;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Client", inversedBy="room", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="App\Entity\Client", cascade={"persist", "remove"})
      */
     private $us2;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Client", inversedBy="room", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="App\Entity\Client", cascade={"persist", "remove"})
      */
     private $them1;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Client", inversedBy="room", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="App\Entity\Client", cascade={"persist", "remove"})
      */
     private $them2;
 
@@ -49,6 +49,11 @@ class Room
      * @ORM\OneToMany(targetEntity="App\Entity\Game", mappedBy="room", orphanRemoval=true, cascade={"persist"})
      */
     private $games;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $in_game;
 
     public function __construct()
     {
@@ -174,6 +179,18 @@ class Room
         return $this;
     }
 
+    public function getInGame(): ?bool
+    {
+        return $this->in_game;
+    }
+
+    public function setInGame(bool $in_game): self
+    {
+        $this->in_game = $in_game;
+
+        return $this;
+    }
+
     public function isFull(){
         return !is_null($this->us1) && !is_null($this->us2) && !is_null($this->them1) && !is_null($this->them2);
     }
@@ -203,6 +220,7 @@ class Room
             'us2' => is_null($this->getUs2()) ? false :  $this->getUs2()->toArray(),
             'them1' => is_null($this->getThem1()) ? false :  $this->getThem1()->toArray(),
             'them2' => is_null($this->getThem2()) ? false :  $this->getThem2()->toArray(),
+            'in_game' => $this->getInGame(),
             'games' => array_map(function ($game) {
                 return $game->getId();
             }, $this->getGames()->toArray()),

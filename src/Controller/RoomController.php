@@ -41,7 +41,7 @@ class RoomController extends AbstractController
     }
 
     /**
-     * @Route("/{room}", name="room_get", methods={"GET"})
+     * @Route("/{room}", name="room_get", methods={"GET"}, requirements={"room"="\d+"})
      * @param RoomRepository $repository
      * @param Room $room
      * @return object|void
@@ -54,7 +54,19 @@ class RoomController extends AbstractController
     }
 
     /**
-     * @Route("/{room}", name="room_delete", methods={"DELETE"})
+     * @Route("/list", name="room_list", methods={"GET"})
+     * @param RoomRepository $repository
+     * @return JsonResponse
+     */
+    public function list(RoomRepository $repository) {
+        $rooms = $repository->findAll();
+        return new JsonResponse(array_map(function ($room) {
+            return $room->toArray();
+        }, $rooms), Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/{room}", name="room_delete", methods={"DELETE"}, requirements={"room"="\d+"})
      * @param RoomRepository $repository
      * @param EntityManagerInterface $entityManager
      * @param Room $room
@@ -73,15 +85,31 @@ class RoomController extends AbstractController
         ], Response::HTTP_OK);
     }
 
+    public static function removeClientFromAllRooms(?Client $client, EntityManagerInterface $entityManager, RoomRepository $roomRepository) {
+        foreach ($roomRepository->findBy(['us1' => $client]) as $room) {
+            $room->setUs1(null);
+        }
+        foreach ($roomRepository->findBy(['us2' => $client]) as $room) {
+            $room->setUs2(null);
+        }
+        foreach ($roomRepository->findBy(['them1' => $client]) as $room) {
+            $room->setThem1(null);
+        }
+        foreach ($roomRepository->findBy(['them2' => $client]) as $room) {
+            $room->setThem2(null);
+        }
+        $entityManager->flush();
+    }
+
     /**
-     * @Route("/{room}", name="room_update", methods={"PATCH"})
+     * @Route("/{room}", name="room_update", methods={"PATCH"}, requirements={"room"="\d+"})
      * @param Request $request
      * @param ClientRepository $repository
      * @param EntityManagerInterface $entityManager
      * @param Room $room
      * @return object|void
      */
-    public function update(Request $request, ClientRepository $repository, EntityManagerInterface $entityManager, Room $room) {
+    public function update(Request $request, ClientRepository $repository, EntityManagerInterface $entityManager, Room $room, RoomRepository $roomRepository) {
         if (is_null($room)) {
             return new Response("Not Found", Response::HTTP_NOT_FOUND);
         }
@@ -93,41 +121,53 @@ class RoomController extends AbstractController
             $room->setName($name);
         }
         if (array_key_exists('us1', $data)){
-            $us1 = $repository->find($data['us1']);
-            if($us1->getRoom()) {
-                $us1->getRoom()->removeClient($us1);
-                $entityManager->flush();
+            if ($data['us1'] === false){
+                $this->removeClientFromAllRooms($room->getUs1(), $entityManager, $roomRepository);
             }
+            $us1 = $repository->find($data['us1']);
+            if(!is_null($room->getUs1())){
+                return new JsonResponse($room->toArray(), Response::HTTP_OK);
+            }
+            $this->removeClientFromAllRooms($us1, $entityManager, $roomRepository);
             if(!is_null($us1)){
                 $room->setUs1($us1);
             }
         }
         if (array_key_exists('us2', $data)){
-            $us2 = $repository->find($data['us2']);
-            if($us2->getRoom()) {
-                $us2->getRoom()->removeClient($us2);
-                $entityManager->flush();
+            if ($data['us2'] === false){
+                $this->removeClientFromAllRooms($room->getUs2(), $entityManager, $roomRepository);
             }
+            $us2 = $repository->find($data['us2']);
+            if(!is_null($room->getUs2())){
+                return new JsonResponse($room->toArray(), Response::HTTP_OK);
+            }
+            $this->removeClientFromAllRooms($us2, $entityManager, $roomRepository);
             if(!is_null($us2)){
                 $room->setUs2($us2);
             }
         }
         if (array_key_exists('them1', $data)){
-            $them1 = $repository->find($data['them1']);
-            if($them1->getRoom()) {
-                $them1->getRoom()->removeClient($them1);
-                $entityManager->flush();
+            if ($data['them1'] === false){
+                $this->removeClientFromAllRooms($room->getThem1(), $entityManager, $roomRepository);
             }
+            $them1 = $repository->find($data['them1']);
+            if(!is_null($room->getThem1())){
+                return new JsonResponse($room->toArray(), Response::HTTP_OK);
+            }
+            $this->removeClientFromAllRooms($them1, $entityManager, $roomRepository);
             if(!is_null($them1)){
                 $room->setThem1($them1);
             }
         }
         if (array_key_exists('them2', $data)){
-            $them2 = $repository->find($data['them2']);
-            if($them2->getRoom()) {
-                $them2->getRoom()->removeClient($them2);
-                $entityManager->flush();
+            if ($data['them2'] === false){
+                $this->removeClientFromAllRooms($room->getThem2(), $entityManager, $roomRepository);
             }
+            $them2 = $repository->find($data['them2']);
+            if(!is_null($room->getThem2())){
+                return new JsonResponse($room->toArray(), Response::HTTP_OK);
+            }
+            $this->removeClientFromAllRooms($them2, $entityManager, $roomRepository);
             if(!is_null($them2)){
                 $room->setThem2($them2);
             }

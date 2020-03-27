@@ -26,11 +26,6 @@ class Client
 
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Room", mappedBy="us1", cascade={"persist", "remove"})
-     */
-    private $room;
-
-    /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Card", mappedBy="client", cascade={"persist", "remove"})
      */
     private $cards;
@@ -56,6 +51,8 @@ class Client
 
         return $this;
     }
+
+    private $room;
 
     public function getRoom(): ?Room
     {
