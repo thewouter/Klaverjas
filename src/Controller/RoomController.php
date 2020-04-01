@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Client;
+use App\Entity\Game;
 use App\Entity\Room;
 use App\Repository\ClientRepository;
 use App\Repository\RoomRepository;
@@ -173,6 +174,12 @@ class RoomController extends AbstractController
             }
         }
         $entityManager->flush();
+
+        if($room->isFull()) {
+            $game = new Game();
+            $room->addGame($game);
+
+        }
 
         return new JsonResponse($room->toArray(), Response::HTTP_OK);
     }

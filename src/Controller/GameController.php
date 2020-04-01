@@ -37,7 +37,7 @@ class GameController extends AbstractController
         if(empty($room)) {
             return new Response("Not all parameters have been provided", Response::HTTP_BAD_REQUEST);
         }
-        $room = $this->getDoctrine()->getRepository(Room::class)->find($room);
+        $room = $this->getDoctrine()->getRepository(Room::class)->findOneBy(['id' => $room]);
         if(empty($room)) {
             return new Response("Room not found", Response::HTTP_NOT_FOUND);
         }
@@ -113,7 +113,7 @@ class GameController extends AbstractController
     }
 
     /**
-     * @Route("/{game}/start", name="game_deal", methods={"POST"})
+     * @Route("/{game}/start", name="game_deal", methods={"PATCH"})
      * @param Game $game
      * @param CardRepository $cardRepository
      * @return JsonResponse

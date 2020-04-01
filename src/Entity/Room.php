@@ -140,8 +140,12 @@ class Room
         return $this;
     }
 
-    public function getGame() {
-        return $this->games->last();
+    public function getGame(): ?Game{
+        if ($this->getInGame()){
+            return $this->games->last();
+        }
+        return null;
+
     }
 
     /**
@@ -224,6 +228,7 @@ class Room
             'games' => array_map(function ($game) {
                 return $game->getId();
             }, $this->getGames()->toArray()),
+            'current_game' => is_null($this->getGame()) ? false : $this->getGame()->getId(),
         ];
     }
 }

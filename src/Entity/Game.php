@@ -35,7 +35,7 @@ class Game
     private $tricks;
 
     public function __construct() {
-        $this->tricks = [0, 0];
+        $this->tricks = new ArrayCollection();
     }
 
     public function getId(): ?int
