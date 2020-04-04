@@ -7,7 +7,7 @@ use App\Entity\Game;
 use App\Entity\Room;
 use App\Entity\Trick;
 use App\Repository\CardRepository;
-use App\Repository\ClientRepository;
+use App\Repository\PlayerRepository;
 use App\Repository\RoomRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -86,12 +86,12 @@ class GameController extends AbstractController
     /**
      * @Route("/{room}", name="room_update", methods={"PATCH"})
      * @param Request $request
-     * @param ClientRepository $repository
+     * @param PlayerRepository $repository
      * @param EntityManagerInterface $entityManager
      * @param Game $game
      * @return object|void
      */
-    public function update(Request $request, ClientRepository $repository, EntityManagerInterface $entityManager, Game $game) {
+    public function update(Request $request, PlayerRepository $repository, EntityManagerInterface $entityManager, Game $game) {
         if (is_null($game)) {
             return new Response("Not Found", Response::HTTP_NOT_FOUND);
         }

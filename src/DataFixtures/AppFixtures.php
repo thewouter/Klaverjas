@@ -3,7 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Card;
-use App\Entity\Client;
+use App\Entity\Player;
 use App\Entity\Game;
 use App\Entity\Room;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -20,13 +20,13 @@ class AppFixtures extends Fixture
             $room = new Room();
             $room->setName($faker->streetName);
 
-            $us1 = new Client();
+            $us1 = new Player();
             $us1->setName($faker->firstName);
-            $us2 = new Client();
+            $us2 = new Player();
             $us2->setName($faker->firstName);
-            $them1 = new Client();
+            $them1 = new Player();
             $them1->setName($faker->firstName);
-            $them2 = new Client();
+            $them2 = new Player();
             $them2->setName($faker->firstName);
 
             $room->setUs1($us1);

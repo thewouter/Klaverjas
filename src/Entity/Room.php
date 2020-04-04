@@ -26,22 +26,22 @@ class Room
     private $name;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Client", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="Player", cascade={"persist", "remove"})
      */
     private $us1;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Client", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="Player", cascade={"persist", "remove"})
      */
     private $us2;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Client", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="Player", cascade={"persist", "remove"})
      */
     private $them1;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Client", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="Player", cascade={"persist", "remove"})
      */
     private $them2;
 
@@ -51,16 +51,16 @@ class Room
     private $games;
 
     /**
-     * @ORM\Column(type="boolean")
+     * @ORM\Column(type="boolean", options={"default" = false})
      */
-    private $in_game;
+    private $in_game = false;
 
     public function __construct()
     {
         $this->games = new ArrayCollection();
     }
 
-    public function removeClient(Client $client){
+    public function removeClient(Player $client){
         if ($this->us1 == $client){
             $this->us1 = null;
         }
@@ -92,48 +92,48 @@ class Room
         return $this;
     }
 
-    public function getUs1(): ?Client
+    public function getUs1(): ?Player
     {
         return $this->us1;
     }
 
-    public function setUs1(?Client $us1): self
+    public function setUs1(?Player $us1): self
     {
         $this->us1 = $us1;
 
         return $this;
     }
 
-    public function getUs2(): ?Client
+    public function getUs2(): ?Player
     {
         return $this->us2;
     }
 
-    public function setUs2(?Client $us2): self
+    public function setUs2(?Player $us2): self
     {
         $this->us2 = $us2;
 
         return $this;
     }
 
-    public function getThem1(): ?Client
+    public function getThem1(): ?Player
     {
         return $this->them1;
     }
 
-    public function setThem1(?Client $them1): self
+    public function setThem1(?Player $them1): self
     {
         $this->them1 = $them1;
 
         return $this;
     }
 
-    public function getThem2(): ?Client
+    public function getThem2(): ?Player
     {
         return $this->them2;
     }
 
-    public function setThem2(?Client $them2): self
+    public function setThem2(?Player $them2): self
     {
         $this->them2 = $them2;
 
@@ -199,7 +199,7 @@ class Room
         return !is_null($this->us1) && !is_null($this->us2) && !is_null($this->them1) && !is_null($this->them2);
     }
 
-    public function hasClient(Client $client) {
+    public function hasClient(Player $client) {
         if ($this->us1 == $client){
             return true;
         }

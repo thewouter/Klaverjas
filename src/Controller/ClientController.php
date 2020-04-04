@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
-use App\Entity\Client;
+use App\Entity\Player;
 use App\Entity\Game;
 use App\Entity\Room;
-use App\Repository\ClientRepository;
+use App\Repository\PlayerRepository;
 use App\Repository\RoomRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,7 +27,7 @@ class ClientController extends AbstractController
      * @param EntityManagerInterface $em
      * @return Response
      */
-    public function add(Request $request, EntityManagerInterface $em, ClientRepository $repository) {
+    public function add(Request $request, EntityManagerInterface $em, PlayerRepository $repository) {
         $data = json_decode($request->getContent(), true);
         $name = $data['name'];
 
@@ -41,7 +41,7 @@ class ClientController extends AbstractController
             return new JsonResponse($exists[0]->toArray(), Response::HTTP_FOUND);
         }
 
-        $client = new Client();
+        $client = new Player();
         $client->setName($name);
         $em->persist($client);
         $em->flush();
@@ -52,10 +52,10 @@ class ClientController extends AbstractController
     /**
      * @Route("/{client}", name="client_get", methods={"GET"})
      * @param RoomRepository $repository
-     * @param Client $client
+     * @param Player $client
      * @return object|void
      */
-    public function get_game(RoomRepository $repository, Client $client) {
+    public function get_game(RoomRepository $repository, Player $client) {
         if (is_null($client)) {
             return new Response("Not Found", Response::HTTP_NOT_FOUND);
         }
@@ -67,10 +67,10 @@ class ClientController extends AbstractController
      * @param Request $request
      * @param RoomRepository $repository
      * @param EntityManagerInterface $entityManager
-     * @param Client $client
+     * @param Player $client
      * @return object|void
      */
-    public function update(Request $request, RoomRepository $repository, EntityManagerInterface $entityManager, Client $client) {
+    public function update(Request $request, RoomRepository $repository, EntityManagerInterface $entityManager, Player $client) {
         $data = json_decode($request->getContent(), true);
         $name = $data['name'];
 
@@ -90,11 +90,11 @@ class ClientController extends AbstractController
 
     /**
      * @Route("/{client}/logout", name="client_logout")
-     * @param Client $client
+     * @param Player $client
      * @param RoomRepository $roomRepository
      * @param EntityManagerInterface $entityManager
      */
-    public function logout(Client $client, RoomRepository $roomRepository, EntityManagerInterface $entityManager){
+    public function logout(Player $client, RoomRepository $roomRepository, EntityManagerInterface $entityManager){
         RoomController::removeClientFromAllRooms($client, $entityManager, $roomRepository);
     }
 
@@ -102,10 +102,10 @@ class ClientController extends AbstractController
      * @Route("/{client}", name="client_delete", methods={"DELETE"})
      * @param RoomRepository $repository
      * @param EntityManagerInterface $entityManager
-     * @param Client $client
+     * @param Player $client
      * @return object|void
      */
-    public function delete(RoomRepository $repository, EntityManagerInterface $entityManager, Client $client) {
+    public function delete(RoomRepository $repository, EntityManagerInterface $entityManager, Player $client) {
         if (is_null($client)) {
             return new Response("Not Found", Response::HTTP_NOT_FOUND);
         }

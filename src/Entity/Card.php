@@ -29,7 +29,7 @@ class Card
     private $rank;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Client", inversedBy="cards")
+     * @ORM\ManyToMany(targetEntity="Player", inversedBy="cards")
      */
     private $client;
 
@@ -68,14 +68,14 @@ class Card
     }
 
     /**
-     * @return Collection|Client[]
+     * @return Collection|Player[]
      */
     public function getClient(): Collection
     {
         return $this->client;
     }
 
-    public function addClient(Client $client): self
+    public function addClient(Player $client): self
     {
         if (!$this->client->contains($client)) {
             $this->client[] = $client;
@@ -84,7 +84,7 @@ class Card
         return $this;
     }
 
-    public function removeClient(Client $client): self
+    public function removeClient(Player $client): self
     {
         if ($this->client->contains($client)) {
             $this->client->removeElement($client);

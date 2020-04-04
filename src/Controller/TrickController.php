@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Trick;
 use App\Repository\CardRepository;
-use App\Repository\ClientRepository;
+use App\Repository\PlayerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,13 +30,13 @@ class TrickController extends AbstractController
     /**
      * @Route("/{trick}/play", name="trick_play", methods={"POST"})
      * @param Request $request
-     * @param ClientRepository $clientRepository
+     * @param PlayerRepository $clientRepository
      * @param CardRepository $cardRepository
      * @param EntityManagerInterface $entityManager
      * @param Trick $trick
      * @return JsonResponse
      */
-    public function playCard(Request $request, ClientRepository $clientRepository, CardRepository $cardRepository, EntityManagerInterface $entityManager, Trick $trick){
+    public function playCard(Request $request, PlayerRepository $clientRepository, CardRepository $cardRepository, EntityManagerInterface $entityManager, Trick $trick){
         $data = json_decode($request->getContent(), true);
 
         if (!array_key_exists('client', $data)) {

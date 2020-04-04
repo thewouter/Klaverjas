@@ -2,30 +2,41 @@
 
 namespace App\Controller;
 
-use App\Entity\Client;
+use App\Entity\Player;
 use App\Entity\Game;
 use App\Entity\Room;
-use App\Repository\ClientRepository;
+use App\Repository\PlayerRepository;
 use App\Repository\RoomRepository;
+use App\Utility\MercureSender;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mercure\Publisher;
+use Symfony\Component\Mercure\PublisherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mercure\Update;
 
 /**
  * @Route("/room")
  */
 class RoomController extends AbstractController
 {
+    private $sender;
+
+    public function __construct(MercureSender $sender) {
+        $this->sender = $sender;
+    }
+
     /**
      * @Route("/add", name="room_add", methods={"POST"})
      * @param Request $request
      * @param EntityManagerInterface $em
+     * @param PublisherInterface $publisher
      * @return Response
      */
-    public function add(Request $request, EntityManagerInterface $em) {
+    public function add(Request $request, EntityManagerInterface $em, PublisherInterface $publisher) {
         $data = json_decode($request->getContent(), true);
         $name = $data['name'];
 
@@ -37,6 +48,8 @@ class RoomController extends AbstractController
         $room->setName($name);
         $em->persist($room);
         $em->flush();
+
+        $this->sender->sendUpdate('room', MercureSender::METHOD_ADD, $room->toArray());
 
         return new JsonResponse($room->toArray(), Response::HTTP_CREATED);
     }
@@ -70,6 +83,7 @@ class RoomController extends AbstractController
      * @Route("/{room}", name="room_delete", methods={"DELETE"}, requirements={"room"="\d+"})
      * @param RoomRepository $repository
      * @param EntityManagerInterface $entityManager
+     * @param PublisherInterface $publisher
      * @param Room $room
      * @return object|void
      */
@@ -78,15 +92,19 @@ class RoomController extends AbstractController
             return new Response("Not Found", Response::HTTP_NOT_FOUND);
         }
 
+        $id = $room->getId();
+
         $entityManager->remove($room);
         $entityManager->flush();
+
+        $this->sender->sendUpdate('room', MercureSender::METHOD_DELETE, ['id' => $id]);
 
         return new JsonResponse([
             'status' => 'OK'
         ], Response::HTTP_OK);
     }
 
-    public static function removeClientFromAllRooms(?Client $client, EntityManagerInterface $entityManager, RoomRepository $roomRepository) {
+    public static function removeClientFromAllRooms(?Player $client, EntityManagerInterface $entityManager, RoomRepository $roomRepository) {
         foreach ($roomRepository->findBy(['us1' => $client]) as $room) {
             $room->setUs1(null);
         }
@@ -105,12 +123,12 @@ class RoomController extends AbstractController
     /**
      * @Route("/{room}", name="room_update", methods={"PATCH"}, requirements={"room"="\d+"})
      * @param Request $request
-     * @param ClientRepository $repository
+     * @param PlayerRepository $repository
      * @param EntityManagerInterface $entityManager
      * @param Room $room
      * @return object|void
      */
-    public function update(Request $request, ClientRepository $repository, EntityManagerInterface $entityManager, Room $room, RoomRepository $roomRepository) {
+    public function update(Request $request, PlayerRepository $repository, EntityManagerInterface $entityManager, Room $room, RoomRepository $roomRepository) {
         if (is_null($room)) {
             return new Response("Not Found", Response::HTTP_NOT_FOUND);
         }

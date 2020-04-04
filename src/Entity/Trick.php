@@ -17,25 +17,25 @@ class Trick
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Client")
+     * @ORM\ManyToOne(targetEntity="Player")
      * @ORM\JoinColumn(nullable=false)
      */
     private $player_1;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Client")
+     * @ORM\ManyToOne(targetEntity="Player")
      * @ORM\JoinColumn(nullable=false)
      */
     private $player_2;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Client")
+     * @ORM\ManyToOne(targetEntity="Player")
      * @ORM\JoinColumn(nullable=false)
      */
     private $player_3;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Client")
+     * @ORM\ManyToOne(targetEntity="Player")
      * @ORM\JoinColumn(nullable=false)
      */
     private $player_4;
@@ -71,48 +71,48 @@ class Trick
         return $this->id;
     }
 
-    public function getPlayer1(): ?Client
+    public function getPlayer1(): ?Player
     {
         return $this->player_1;
     }
 
-    public function setPlayer1(?Client $player_1): self
+    public function setPlayer1(?Player $player_1): self
     {
         $this->player_1 = $player_1;
 
         return $this;
     }
 
-    public function getPlayer2(): ?Client
+    public function getPlayer2(): ?Player
     {
         return $this->player_2;
     }
 
-    public function setPlayer2(?Client $player_2): self
+    public function setPlayer2(?Player $player_2): self
     {
         $this->player_2 = $player_2;
 
         return $this;
     }
 
-    public function getPlayer3(): ?Client
+    public function getPlayer3(): ?Player
     {
         return $this->player_3;
     }
 
-    public function setPlayer3(?Client $player_3): self
+    public function setPlayer3(?Player $player_3): self
     {
         $this->player_3 = $player_3;
 
         return $this;
     }
 
-    public function getPlayer4(): ?Client
+    public function getPlayer4(): ?Player
     {
         return $this->player_4;
     }
 
-    public function setPlayer4(?Client $player_4): self
+    public function setPlayer4(?Player $player_4): self
     {
         $this->player_4 = $player_4;
 
@@ -193,7 +193,7 @@ class Trick
         }
     }
 
-    public function setNextCard(Card $card, Client $client){
+    public function setNextCard(Card $card, Player $client){
         if(is_null($this->card_1)) {
             $this->card_1 = $card;
             $this->player_1 = $client;
