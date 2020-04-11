@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -65,6 +66,9 @@ class Trick
      * @ORM\JoinColumn(nullable=false)
      */
     private $game;
+
+    public static $NORMAL_ORDER = [0 => '7', 1 => '8', 2 => '9', 3 => 'j', 4 => 'q', 5 => 'k', 6 => 't', 7 => 'a'];
+    public static $TRUMP_ORDER = [0 => '7', 1 => '8', 2 => 'q', 3 => 'k', 4 => 't', 5 => 'a', 6 => '9', 7 => 'j'];
 
     public function getId(): ?int
     {
@@ -189,7 +193,7 @@ class Trick
         } elseif(is_null($this->card_4)){
             return $this->player_4;
         } else {
-            return null;
+            return false;
         }
     }
 
@@ -212,9 +216,98 @@ class Trick
         return true;
     }
 
+    public function getClassName() {
+        return 'trick';
+    }
+
+    public function getNextPlayer() {
+        if (!in_array(true, $this->getGame()->getTrumpChosen())) {
+            $chosenTrump = $this->getGame()->getTrumpChosen();
+            switch (true) {
+                case (is_null($chosenTrump[0])):
+                    return 0;
+                    break;
+                case (is_null($chosenTrump[1])):
+                    return 1;
+                    break;
+                case (is_null($chosenTrump[2])):
+                    return 2;
+                    break;
+                case (is_null($chosenTrump[3])):
+                    return 3;
+                    break;
+                default: // Everybody passed, player 1 has to choose
+                    return 0;
+            }
+        }
+
+        switch (true) {
+            case is_null($this->getCard1()):
+                return 0;
+                break;
+            case is_null($this->getCard2()):
+                return 1;
+                break;
+            case is_null($this->getCard3()):
+                return 2;
+                break;
+            case is_null($this->getCard4()):
+                return 3;
+                break;
+        }
+    }
+
+    public function getWinnerTrump($trumper){
+        $winner = $trumper;
+        $trump = $this->getGame()->getTrump();
+        foreach (range(0, 7) as $key) {
+            $value = self::$TRUMP_ORDER[$key];
+            if($this->getCard2()->getRank() == $value && $this->getCard2()->getSuit() == $trump){
+                $winner = 1;
+            }
+            if($this->getCard3()->getRank() == $value && $this->getCard3()->getSuit() == $trump){
+                $winner = 2;
+            }
+            if($this->getCard4()->getRank() == $value && $this->getCard4()->getSuit() == $trump){
+                $winner = 3;
+            }
+        }
+        return $winner;
+    }
+
+    public function getWinner() {
+        if($this->getGame()->getTrump() == $this->getCard1()->getSuit()){
+            return $this->getWinnerTrump(0);
+        } else {
+            if($this->getCard2()->getSuit() == $this->getGame()->getTrump()){
+                return $this->getWinnerTrump(1);
+            } elseif ($this->getCard3()->getSuit() == $this->getGame()->getTrump()) {
+                return $this->getWinnerTrump(2);
+            } elseif ($this->getCard4()->getSuit() == $this->getGame()->getTrump()){
+                return $this->getWinnerTrump(3);
+            }
+            $winner = 0;
+            $playedSuit = $this->getCard1()->getSuit();
+            foreach (range(0, 7) as $key) {
+                $value = self::$NORMAL_ORDER[$key];
+                if($this->getCard2()->getRank() == $value && $this->getCard2()->getSuit() == $playedSuit){
+                    $winner = 1;
+                }
+                if($this->getCard4()->getRank() == $value && $this->getCard3()->getSuit() == $playedSuit){
+                    $winner = 2;
+                }
+                if($this->getCard4()->getRank() == $value && $this->getCard4()->getSuit() == $playedSuit){
+                    $winner = 3;
+                }
+            }
+            return $winner;
+        }
+    }
+
     public function toArray() {
-        return [
+        return array(
             'id' => $this->getId(),
+            'game' => $this->getGame()->getId(),
             'player_1' => $this->getPlayer1()->toArray(),
             'player_2' => $this->getPlayer2()->toArray(),
             'player_3' => $this->getPlayer3()->toArray(),
@@ -223,6 +316,7 @@ class Trick
             'card_2' => is_null($this->getCard2()) ? false : $this->getCard2()->toArray(),
             'card_3' => is_null($this->getCard3()) ? false : $this->getCard3()->toArray(),
             'card_4' => is_null($this->getCard4()) ? false : $this->getCard4()->toArray(),
-        ];
+            'turn' => $this->getNextPlayer(),
+        );
     }
 }

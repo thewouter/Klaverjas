@@ -6,6 +6,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
+        "doctrine/event-manager": "^1.1",
         "fzaninotto/faker": "^1.9",
         "nelmio/cors-bundle": "^2.0",
         "php-http/curl-client": "^2.1",

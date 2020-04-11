@@ -58,6 +58,10 @@ class Room
     public function __construct()
     {
         $this->games = new ArrayCollection();
+        $this->us1 = new Player();
+        $this->us2 = new Player();
+        $this->them1 = new Player();
+        $this->them2 = new Player();
     }
 
     public function removeClient(Player $client){
@@ -199,20 +203,24 @@ class Room
         return !is_null($this->us1) && !is_null($this->us2) && !is_null($this->them1) && !is_null($this->them2);
     }
 
-    public function hasClient(Player $client) {
-        if ($this->us1 == $client){
+    public function hasPlayer(Player $client) {
+        if ($this->us1 === $client){
             return true;
         }
-        if ($this->us2 == $client){
+        if ($this->us2 === $client){
             return true;
         }
-        if ($this->them1 == $client){
+        if ($this->them1 === $client){
             return true;
         }
-        if ($this->them2 == $client){
+        if ($this->them2 === $client){
             return true;
         }
         return false;
+    }
+
+    public function getClassName() {
+        return 'room';
     }
 
     public function toArray()
@@ -220,10 +228,10 @@ class Room
         return [
             'id' => $this->getId(),
             'name' => $this->getName(),
-            'us1' => is_null($this->getUs1()) ? false :  $this->getUs1()->toArray(),
-            'us2' => is_null($this->getUs2()) ? false :  $this->getUs2()->toArray(),
-            'them1' => is_null($this->getThem1()) ? false :  $this->getThem1()->toArray(),
-            'them2' => is_null($this->getThem2()) ? false :  $this->getThem2()->toArray(),
+            'us1' => $this->getUs1()->toArray(),
+            'us2' => $this->getUs2()->toArray(),
+            'them1' => $this->getThem1()->toArray(),
+            'them2' => $this->getThem2()->toArray(),
             'in_game' => $this->getInGame(),
             'games' => array_map(function ($game) {
                 return $game->getId();

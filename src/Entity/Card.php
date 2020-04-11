@@ -33,6 +33,16 @@ class Card
      */
     private $client;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $points_trump;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $points;
+
     public function __construct()
     {
         $this->client = new ArrayCollection();
@@ -93,10 +103,41 @@ class Card
         return $this;
     }
 
+    public function getClassName() {
+        return 'card';
+    }
+
     public function toArray(){
         return [
-            'rank' => $this->rank,
-            'suit' => $this->suit,
+            'id' => $this->getId(),
+            'rank' => $this->getRank(),
+            'suit' => $this->getSuit(),
+            'points_trump' => $this->getPointsTrump(),
+            'points' => $this->getPoints(),
         ];
+    }
+
+    public function getPointsTrump(): ?int
+    {
+        return $this->points_trump;
+    }
+
+    public function setPointsTrump(int $points_trump): self
+    {
+        $this->points_trump = $points_trump;
+
+        return $this;
+    }
+
+    public function getPoints(): ?int
+    {
+        return $this->points;
+    }
+
+    public function setPoints(int $points): self
+    {
+        $this->points = $points;
+
+        return $this;
     }
 }

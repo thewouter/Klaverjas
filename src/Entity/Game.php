@@ -21,7 +21,7 @@ class Game
     /**
      * @ORM\Column(type="array")
      */
-    private $points = [];
+    private $points = [0, 0];
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Room", inversedBy="games")
@@ -34,8 +34,49 @@ class Game
      */
     private $tricks;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $trump;
+
+    /**
+     * @ORM\Column(type="array")
+     */
+    private $trump_chosen = [null, null, null, null];
+
     public function __construct() {
         $this->tricks = new ArrayCollection();
+    }
+
+    public function getTrump(): ?string
+    {
+        return $this->trump;
+    }
+
+    public function setTrump(?string $trump): self
+    {
+        $this->trump = $trump;
+
+        return $this;
+    }
+
+    public function getTrumpChosen(): array
+    {
+        return $this->trump_chosen;
+    }
+
+    public function setTrumpChosen(array $trump_chosen): self
+    {
+        $this->trump_chosen = $trump_chosen;
+
+        return $this;
+    }
+
+    public function setTrumpChosenSeat(bool $trump_chosen, int $seat): self
+    {
+        $this->trump_chosen[$seat] = $trump_chosen;
+
+        return $this;
     }
 
     public function getId(): ?int
@@ -51,6 +92,14 @@ class Game
     public function setPoints(array $points): self
     {
         $this->points = $points;
+
+        return $this;
+    }
+
+    public function addPoints(array $points): self
+    {
+        $this->points[0] += $points[0];
+        $this->points[1] += $points[1];
 
         return $this;
     }
@@ -107,6 +156,29 @@ class Game
         return $this;
     }
 
+    public function getClassName() {
+        return 'game';
+    }
+
+    public function getFirstPlayer() {
+        if ($this->getTricks()->count() > 1 ){
+            $current_trick = $this->getTricks()->get($this->getTricks()->count() - 1 );
+            $first_player = $current_trick->getPlayer1();
+            switch ($first_player->getId()) {
+                case $this->getRoom()->getUs1()->getId():
+                    return 0;
+                case $this->getRoom()->getThem1()->getId():
+                    return 1;
+                case $this->getRoom()->getUs2()->getId():
+                    return 2;
+                case $this->getRoom()->getThem2()->getId():
+                    return 3;
+            }
+        }
+
+        return 0;
+    }
+
     public function toArray() {
         return [
             'id' => $this->getId(),
@@ -115,6 +187,9 @@ class Game
             'tricks' => array_map(function ($trick) {
                 return $trick->toArray();
             }, $this->getTricks()->toArray()),
+            'trump' => is_null($this->getTrump()) ? false : $this->getTrump(),
+            'trump_chosen' => $this->getTrumpChosen(),
+            'first_player' => $this->getFirstPlayer(),
         ];
     }
 }

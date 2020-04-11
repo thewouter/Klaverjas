@@ -38,6 +38,7 @@ class MercureSender {
         $data['content'] = $content;
         $data['object'] = $object;
         $data['method'] = $method;
+        $data['time'] = date("Y-m-d h:i:sa");
 
         $update = new Update(
             $this->topic_url,

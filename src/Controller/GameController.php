@@ -11,6 +11,7 @@ use App\Repository\PlayerRepository;
 use App\Repository\RoomRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\Entity;
 use http\Client;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -84,7 +85,7 @@ class GameController extends AbstractController
 
 
     /**
-     * @Route("/{room}", name="room_update", methods={"PATCH"})
+     * @Route("/{game}", name="game_update", methods={"PATCH"})
      * @param Request $request
      * @param PlayerRepository $repository
      * @param EntityManagerInterface $entityManager
@@ -106,6 +107,16 @@ class GameController extends AbstractController
                 'status' => "FAILED",
                 'message' => "Cannot move to another room",
             ]);
+        }
+
+        if (array_key_exists('trump_chosen', $data)){
+            $yes_no = $data['trump_chosen'];
+            $game->setTrumpChosen($yes_no);
+        }
+
+        if (array_key_exists('trump', $data)){
+            $trump= $data['trump'];
+            $game->setTrump($trump);
         }
         $entityManager->flush();
 
@@ -160,6 +171,44 @@ class GameController extends AbstractController
 
         $game->getRoom()->setInGame(true);
 
+        $entityManager->flush();
+
+        return new JsonResponse($game->toArray(), Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/{game}/reset", name="game_reset", methods={"POST"})
+     * @param Game $game
+     * @param CardRepository $cardRepository
+     * @return JsonResponse
+     */
+    public function reset(Game $game, CardRepository $cardRepository, EntityManagerInterface $entityManager) {
+        $game->setTricks(new ArrayCollection()); // reset hand by removing all tricks
+
+        $cards = $cardRepository->findAll();
+        shuffle($cards);
+        $game->getRoom()->getUs1()->removeAllCards();
+        $game->getRoom()->getUs1()->addCards(array_slice($cards, 0, 8));
+        $game->getRoom()->getUs2()->removeAllCards();
+        $game->getRoom()->getUs2()->addCards(array_slice($cards, 8, 8));
+        $game->getRoom()->getThem1()->removeAllCards();
+        $game->getRoom()->getThem1()->addCards(array_slice($cards, 16, 8));
+        $game->getRoom()->getThem2()->removeAllCards();
+        $game->getRoom()->getThem2()->addCards(array_slice($cards, 24, 8));
+
+        $newTrick = new Trick();
+        $newTrick->setPlayer1($game->getRoom()->getUs1());
+        $newTrick->setPlayer2($game->getRoom()->getThem1());
+        $newTrick->setPlayer3($game->getRoom()->getUs2());
+        $newTrick->setPlayer4($game->getRoom()->getThem2());
+
+        $suits = ['c', 'd', 'h', 's'];
+        $game->setTrump($suits[array_rand($suits)]);
+        $game->setTrumpChosen([null, null, null, null]);
+
+        $game->addTrick($newTrick);
+        
+        $entityManager->persist($newTrick);
         $entityManager->flush();
 
         return new JsonResponse($game->toArray(), Response::HTTP_OK);
