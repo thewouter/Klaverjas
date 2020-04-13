@@ -21,7 +21,7 @@ class Game
     /**
      * @ORM\Column(type="array")
      */
-    private $points = [0, 0];
+    private $points = [];
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Room", inversedBy="games")
@@ -98,8 +98,7 @@ class Game
 
     public function addPoints(array $points): self
     {
-        $this->points[0] += $points[0];
-        $this->points[1] += $points[1];
+        $this->points[] = $points;
 
         return $this;
     }
@@ -160,9 +159,34 @@ class Game
         return 'game';
     }
 
+    public function resetTrump() {
+        $suits = ['c', 'd', 'h', 's'];
+        $this->setTrump($suits[array_rand($suits)]);
+        $this->setTrumpChosen([null, null, null, null]);
+    }
+
     public function getFirstPlayer() {
-        if ($this->getTricks()->count() > 1 ){
+        if ($this->getTricks()->count() > 0 ){
             $current_trick = $this->getTricks()->get($this->getTricks()->count() - 1 );
+            $first_player = $current_trick->getPlayer1();
+            switch ($first_player->getId()) {
+                case $this->getRoom()->getUs1()->getId():
+                    return 0;
+                case $this->getRoom()->getThem1()->getId():
+                    return 1;
+                case $this->getRoom()->getUs2()->getId():
+                    return 2;
+                case $this->getRoom()->getThem2()->getId():
+                    return 3;
+            }
+        }
+
+        return 0;
+    }
+
+    public function getPrevFirstPlayer() {
+        if ($this->getTricks()->count() > 2 ){
+            $current_trick = $this->getTricks()->get($this->getTricks()->count() - 2 );
             $first_player = $current_trick->getPlayer1();
             switch ($first_player->getId()) {
                 case $this->getRoom()->getUs1()->getId():
@@ -190,6 +214,7 @@ class Game
             'trump' => is_null($this->getTrump()) ? false : $this->getTrump(),
             'trump_chosen' => $this->getTrumpChosen(),
             'first_player' => $this->getFirstPlayer(),
+            'prev_first_player' => $this->getPrevFirstPlayer(),
         ];
     }
 }

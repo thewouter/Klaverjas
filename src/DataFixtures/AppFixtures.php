@@ -38,6 +38,8 @@ class AppFixtures extends Fixture
             for($j = 0; $j < 5; $j++) {
                 $game = new Game();
                 $game->setPoints([$faker->randomDigitNotNull*100, $faker->randomDigitNotNull*100]);
+                $game->resetTrump();
+                $game->setTrumpChosen([false, true, null, null]);
                 $room->addGame($game);
                 for ($k = 0; $k < 16; $k++) {
                     $trick = new Trick();

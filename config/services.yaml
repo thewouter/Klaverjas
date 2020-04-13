@@ -31,6 +31,5 @@ services:
     App\EventListener\EntityListener:
         tags:
             - { name: doctrine.event_listener, event: postUpdate }
-            - { name: doctrine.event_listener, event: onFlush }
             - { name: doctrine.event_listener, event: postPersist }
             - { name: doctrine.event_listener, event: postRemove }

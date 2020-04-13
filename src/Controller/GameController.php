@@ -169,6 +169,8 @@ class GameController extends AbstractController
 
         $game->addTrick($trick);
 
+        $game->resetTrump();
+
         $game->getRoom()->setInGame(true);
 
         $entityManager->flush();
@@ -177,40 +179,55 @@ class GameController extends AbstractController
     }
 
     /**
-     * @Route("/{game}/reset", name="game_reset", methods={"POST"})
+     * @Route("/{game}/reset/{state}", name="game_reset", methods={"POST"})
      * @param Game $game
      * @param CardRepository $cardRepository
+     * @param EntityManagerInterface $entityManager
+     * @param int $state
      * @return JsonResponse
      */
-    public function reset(Game $game, CardRepository $cardRepository, EntityManagerInterface $entityManager) {
-        $game->setTricks(new ArrayCollection()); // reset hand by removing all tricks
+    public function reset(Game $game, CardRepository $cardRepository, EntityManagerInterface $entityManager, int $state) {
+        if($state == 1) {
+            $game->setTricks(new ArrayCollection()); // reset hand by removing all tricks
+            $game->getRoom()->setInGame(true);
 
-        $cards = $cardRepository->findAll();
-        shuffle($cards);
-        $game->getRoom()->getUs1()->removeAllCards();
-        $game->getRoom()->getUs1()->addCards(array_slice($cards, 0, 8));
-        $game->getRoom()->getUs2()->removeAllCards();
-        $game->getRoom()->getUs2()->addCards(array_slice($cards, 8, 8));
-        $game->getRoom()->getThem1()->removeAllCards();
-        $game->getRoom()->getThem1()->addCards(array_slice($cards, 16, 8));
-        $game->getRoom()->getThem2()->removeAllCards();
-        $game->getRoom()->getThem2()->addCards(array_slice($cards, 24, 8));
+            $cards = $cardRepository->findAll();
+            dump($cards);
+            shuffle($cards);
+            $game->getRoom()->getUs1()->removeAllCards();
+            $game->getRoom()->getUs1()->addCards(array_slice($cards, 0, 8));
+            $game->getRoom()->getUs2()->removeAllCards();
+            $game->getRoom()->getUs2()->addCards(array_slice($cards, 8, 8));
+            $game->getRoom()->getThem1()->removeAllCards();
+            $game->getRoom()->getThem1()->addCards(array_slice($cards, 16, 8));
+            $game->getRoom()->getThem2()->removeAllCards();
+            $game->getRoom()->getThem2()->addCards(array_slice($cards, 24, 8));
 
-        $newTrick = new Trick();
-        $newTrick->setPlayer1($game->getRoom()->getUs1());
-        $newTrick->setPlayer2($game->getRoom()->getThem1());
-        $newTrick->setPlayer3($game->getRoom()->getUs2());
-        $newTrick->setPlayer4($game->getRoom()->getThem2());
+            $newTrick = new Trick();
+            $newTrick->setPlayer1($game->getRoom()->getUs1());
+            $newTrick->setPlayer2($game->getRoom()->getThem1());
+            $newTrick->setPlayer3($game->getRoom()->getUs2());
+            $newTrick->setPlayer4($game->getRoom()->getThem2());
 
-        $suits = ['c', 'd', 'h', 's'];
-        $game->setTrump($suits[array_rand($suits)]);
-        $game->setTrumpChosen([null, null, null, null]);
+            $game->resetTrump();
 
-        $game->addTrick($newTrick);
-        
-        $entityManager->persist($newTrick);
-        $entityManager->flush();
+            $game->addTrick($newTrick);
 
-        return new JsonResponse($game->toArray(), Response::HTTP_OK);
+            $game->getRoom()->getUs1()->setClient(null);
+            $game->getRoom()->getUs2()->setClient(null);
+            $game->getRoom()->getThem1()->setClient(null);
+            $game->getRoom()->getThem2()->setClient(null);
+
+            $entityManager->persist($newTrick);
+            $entityManager->flush();
+
+            return new JsonResponse($game->toArray(), Response::HTTP_OK);
+        }
+        if ($state == 2) {
+            $game->setTricks(new ArrayCollection()); // reset hand by removing all tricks
+            $game->getRoom()->setInGame(false);
+            $entityManager->flush();
+            return new JsonResponse($game->toArray(), Response::HTTP_OK);
+        }
     }
 }

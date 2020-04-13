@@ -15,15 +15,6 @@ class EntityListener {
         $this->sender = $sender;
     }
 
-    public function onFlush(OnFlushEventArgs $args) {
-        $em = $args->getEntityManager();
-        $uow = $em->getUnitOfWork();
-        foreach ($uow->getScheduledEntityUpdates() as $entity)
-        file_put_contents('php://stderr', print_r($entity->toArray(), TRUE));
-        file_put_contents('php://stderr', print_r("\n", TRUE));
-       // $this->sender->sendUpdate($event->getEntity()->getClassname(), "geen idee", $event->getEntity()->toArray());
-    }
-
     public function postUpdate(LifecycleEventArgs $event) {
         $this->sender->sendUpdate($event->getEntity()->getClassname(), MercureSender::METHOD_PATCH, $event->getEntity()->toArray());
     }

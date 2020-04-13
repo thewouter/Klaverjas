@@ -132,8 +132,9 @@ class TrickController extends AbstractController
                 $trick->getPlayer4()->getCards()->count() == 0 ) { // Complete hand played, deal new hand and update points.
 
                 $game = $trick->getGame();
-                $us_points = 0;
-                $them_points = 0;
+                $add_points = [0, 0];
+                $one_three_us = 0;
+                dump($game->getPoints());
                 foreach ($game->getTricks() as $tr){
                     $winner = $trick->getWinner();
                     $one_three_us = true;
@@ -151,38 +152,52 @@ class TrickController extends AbstractController
                     }
                     $points = 0;
 
-                    if($trick->getCard1()->getSuit() == $game->getTrump()) {
-                        $points += $trick->getCard1()->getPointsTrump();
+                    if($tr->getCard1()->getSuit() == $game->getTrump()) {
+                        $points += $tr->getCard1()->getPointsTrump();
                     } else {
-                        $points += $trick->getCard1()->getPoints();
+                        $points += $tr->getCard1()->getPoints();
                     }
 
-                    if($trick->getCard2()->getSuit() == $game->getTrump()) {
-                        $points += $trick->getCard2()->getPointsTrump();
+                    if($tr->getCard2()->getSuit() == $game->getTrump()) {
+                        $points += $tr->getCard2()->getPointsTrump();
                     } else {
-                        $points += $trick->getCard2()->getPoints();
+                        $points += $tr->getCard2()->getPoints();
                     }
 
-                    if($trick->getCard3()->getSuit() == $game->getTrump()) {
-                        $points += $trick->getCard3()->getPointsTrump();
+                    if($tr->getCard3()->getSuit() == $game->getTrump()) {
+                        $points += $tr->getCard3()->getPointsTrump();
                     } else {
-                        $points += $trick->getCard3()->getPoints();
+                        $points += $tr->getCard3()->getPoints();
                     }
 
-                    if($trick->getCard4()->getSuit() == $game->getTrump()) {
-                        $points += $trick->getCard4()->getPointsTrump();
+                    if($tr->getCard4()->getSuit() == $game->getTrump()) {
+                        $points += $tr->getCard4()->getPointsTrump();
                     } else {
-                        $points += $trick->getCard4()->getPoints();
+                        $points += $tr->getCard4()->getPoints();
                     }
+                    dump($points . " " . $winner . " " . $tr->getCard1()->getPoints() . " " . $tr->getCard1()->getSuit() . " " . $tr->getCard1()->getRank());
 
-                    $windex = (($one_three_us? 1 : 0) + $winner) % 2;
-                    $add_points = [0, 0];
+                    $windex = (($one_three_us? 0 : 1) + $winner) % 2;
                     $add_points[$windex] += $points;
-                    $game->addPoints($add_points);
 
                     $entityManager->remove($tr);
                 }
-                $game->addPoints([$us_points, $them_points]); // add points
+
+
+
+                $last_trick_points = $game->getTricks()->last()->getWinner() % 2;
+                dump($last_trick_points);
+                $add_points[(($one_three_us? 0 : 1) + $last_trick_points) % 2] += 10;
+
+                $playing_side = array_search(true, $game->getTrumpChosen()) % 2;
+                if ($add_points[$playing_side] <= $add_points[1-$playing_side]) {
+                    $add_points = [0, 0];
+                    $add_points[1-$playing_side] = 162;
+                }
+
+                $game->addPoints($add_points);
+                dump($game->getPoints());
+                $firstTrick = $game->getTricks()->first();
                 $game->setTricks(new ArrayCollection()); // reset hand by removing all tricks
 
                 //        Shuffle cards and deal them to the players
@@ -196,27 +211,44 @@ class TrickController extends AbstractController
                 $game->getRoom()->getThem1()->addCards(array_slice($cards, 16, 8));
                 $game->getRoom()->getThem2()->removeAllCards();
                 $game->getRoom()->getThem2()->addCards(array_slice($cards, 24, 8));
+
+                $players = [
+                    $firstTrick->getPlayer1(),
+                    $firstTrick->getPlayer2(),
+                    $firstTrick->getPlayer3(),
+                    $firstTrick->getPlayer4(),
+                ];
+                $newTrick = new Trick();
+                $newTrick->setPlayer1($players[1]);
+                $newTrick->setPlayer2($players[2]);
+                $newTrick->setPlayer3($players[3]);
+                $newTrick->setPlayer4($players[0]);
+                $trick->getGame()->addTrick($newTrick);
+
+//                shuffle new trump
+                $game ->resetTrump();
+
+            } else {
+                $trick_winner = $trick->getWinner();
+                $players = [
+                    $trick->getPlayer1(),
+                    $trick->getPlayer2(),
+                    $trick->getPlayer3(),
+                    $trick->getPlayer4(),
+                ];
+                $newTrick = new Trick();
+                $newTrick->setPlayer1($players[$trick_winner]);
+                $newTrick->setPlayer2($players[($trick_winner + 1) % 4]);
+                $newTrick->setPlayer3($players[($trick_winner + 2) % 4]);
+                $newTrick->setPlayer4($players[($trick_winner + 3) % 4]);
+                $trick->getGame()->addTrick($newTrick);
             }
-            $trick_winner = $trick->getWinner();
-            $players = [
-                $trick->getPlayer1(),
-                $trick->getPlayer2(),
-                $trick->getPlayer3(),
-                $trick->getPlayer4(),
-            ];
-
-            $newTrick = new Trick();
-            $newTrick->setPlayer1($players[$trick_winner]);
-            $newTrick->setPlayer2($players[($trick_winner + 1) % 4]);
-            $newTrick->setPlayer3($players[($trick_winner + 2) % 4]);
-            $newTrick->setPlayer4($players[($trick_winner + 3) % 4]);
-            $trick->getGame()->addTrick($newTrick);
-
-//            first player can be changed so force update of game at clients
-
-            $sender->sendUpdate($trick->getGame()->getClassName(), MercureSender::METHOD_PATCH, $trick->getGame()->toArray());
 
             $entityManager->persist($newTrick);
+            $entityManager->flush();
+//            first player can be changed so force update of game at clients
+            $sender->sendUpdate($trick->getGame()->getClassName(), MercureSender::METHOD_PATCH, $trick->getGame()->toArray());
+
         }
 
         $entityManager->flush();

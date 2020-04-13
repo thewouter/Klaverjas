@@ -262,6 +262,9 @@ class Trick
         $trump = $this->getGame()->getTrump();
         foreach (range(0, 7) as $key) {
             $value = self::$TRUMP_ORDER[$key];
+            if($this->getCard1()->getRank() == $value && $this->getCard1()->getSuit() == $trump){
+                $winner = 0;
+            }
             if($this->getCard2()->getRank() == $value && $this->getCard2()->getSuit() == $trump){
                 $winner = 1;
             }
@@ -290,10 +293,13 @@ class Trick
             $playedSuit = $this->getCard1()->getSuit();
             foreach (range(0, 7) as $key) {
                 $value = self::$NORMAL_ORDER[$key];
+                if($this->getCard1()->getRank() == $value && $this->getCard1()->getSuit() == $playedSuit){
+                    $winner = 0;
+                }
                 if($this->getCard2()->getRank() == $value && $this->getCard2()->getSuit() == $playedSuit){
                     $winner = 1;
                 }
-                if($this->getCard4()->getRank() == $value && $this->getCard3()->getSuit() == $playedSuit){
+                if($this->getCard3()->getRank() == $value && $this->getCard3()->getSuit() == $playedSuit){
                     $winner = 2;
                 }
                 if($this->getCard4()->getRank() == $value && $this->getCard4()->getSuit() == $playedSuit){
