@@ -84,7 +84,15 @@ class RoomController extends AbstractController
             return new Response("Not Found", Response::HTTP_NOT_FOUND);
         }
 
-        $id = $room->getId();
+        if (!is_null($room->getUs1()->getClient()) ||
+            !is_null($room->getUs2()->getClient()) ||
+            !is_null($room->getThem1()->getClient()) ||
+            !is_null($room->getThem2()->getClient())) {
+            return new JsonResponse([
+                'status' => 'FAILED',
+                'reason' => 'Room not empty',
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
         $entityManager->remove($room);
         $entityManager->flush();

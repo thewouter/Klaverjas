@@ -192,7 +192,6 @@ class GameController extends AbstractController
             $game->getRoom()->setInGame(true);
 
             $cards = $cardRepository->findAll();
-            dump($cards);
             shuffle($cards);
             $game->getRoom()->getUs1()->removeAllCards();
             $game->getRoom()->getUs1()->addCards(array_slice($cards, 0, 8));
@@ -212,6 +211,9 @@ class GameController extends AbstractController
             $game->resetTrump();
 
             $game->addTrick($newTrick);
+
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
 
             $game->getRoom()->getUs1()->setClient(null);
             $game->getRoom()->getUs2()->setClient(null);

@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use function Clue\StreamFilter\fun;
 use function Sodium\add;
 
 /**
@@ -112,14 +113,109 @@ class TrickController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-
-
         if ($currentPlayer->getId() != $player->getId()) {
             return new JsonResponse([
                 'status' => 'FAILED',
                 'message' => 'Not this players turn',
             ], Response::HTTP_BAD_REQUEST);
         }
+
+
+        // First trick is always correct
+        if ($trick->getNextPlayer() > 0) {
+            $requested_suit = $trick->getCard1()->getSuit();
+            $suit = $card->getSuit();
+            $trump_played = $suit == $trick->getGame()->getTrump();
+            $trump = $trick->getGame()->getTrump();
+            $suit_followed = $suit == $requested_suit;
+            $int_rank_trump = array_search($card->getRank(), Trick::$TRUMP_ORDER);
+            $played_cards = array_filter([
+                    $trick->getCard1(),
+                    $trick->getCard2(),
+                    $trick->getCard3(),
+                    $trick->getCard4(),
+                ], function ($c) {
+                return !is_null($c);
+            });
+            $previous_trumps = array_filter($played_cards, function ($c) use ($trump) {
+                return $c->getSuit() == $trump;
+            });
+            $int_previous_trumps = array_map(function ($c) {
+                return array_search($c->getRank(), Trick::$TRUMP_ORDER);
+            }, $previous_trumps);
+            $under_played = max(array_merge($int_previous_trumps, [0])) > $int_rank_trump;
+            $trump_in_hand = array_filter($player->getCards()->toArray(), function ($c) use ($trump) {
+                return $c->getSuit() == $trump;
+            });
+            $num_trump_in_hand = count($trump_in_hand);
+            $not_trump_in_hand = array_filter($player->getCards()->toArray(), function ($c) use ($trump) {
+                return $c->getSuit() != $trump;
+            });
+            $num_not_trump_in_hand = count($not_trump_in_hand);
+            $int_trumps_in_hand = array_map(function ($c) {
+                return array_search($c->getRank(), Trick::$TRUMP_ORDER);
+            }, $trump_in_hand);
+            $undertrump_allowed = max(array_merge($int_trumps_in_hand, [0])) < max(array_merge($int_previous_trumps,[0]));
+            $available_of_suit = count(array_filter($player->getCards()->toArray(), function ($c) use ($requested_suit) {
+                return $c->getSuit() == $requested_suit;
+            }));
+
+            $failed = false;
+            $failed_reason = '';
+
+            if ($suit_followed) {
+                if ($trump_played) {
+                    if ($under_played) {
+                        if ($undertrump_allowed) {
+                            // OK
+                        } else {
+                            $failed = true;
+                            $failed_reason = 'undertrump not allowed when overtrump possible';
+                        }
+                    } else {
+                        // OK
+                    }
+                } else {
+                    // OK
+                }
+            } else {
+                if($available_of_suit > 0) {
+                    $failed = true;
+                    $failed_reason = 'correct suit available';
+                } else {
+                    if ($trump_played) {
+                        if ($under_played){
+                            if ($undertrump_allowed && $num_not_trump_in_hand == 0) {
+                                // OK
+                            } else {
+                                $failed = true;
+                                $failed_reason = 'undertrump not allowed when overtrump possible';
+                            }
+                        } else {
+                            // OK
+                        }
+                    } else {
+                        if ($num_trump_in_hand > 0) {
+                            $failed = true;
+                            $failed_reason = 'trumping is obligated';
+                        } else {
+                            // OK
+                        }
+                    }
+                }
+            }
+
+            if ($failed) {
+                return new JsonResponse([
+                    'status' => 'FAILED',
+                    'reason' => $failed_reason
+                ], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+
+
+
 
         $trick->setNextCard($card, $player);
         $player->removeCard($card);
@@ -132,9 +228,9 @@ class TrickController extends AbstractController
                 $trick->getPlayer4()->getCards()->count() == 0 ) { // Complete hand played, deal new hand and update points.
 
                 $game = $trick->getGame();
-                $add_points = [0, 0];
+                $add_points = [0, 0, 0, 0];
                 $one_three_us = 0;
-                dump($game->getPoints());
+
                 foreach ($game->getTricks() as $tr){
                     $winner = $trick->getWinner();
                     $one_three_us = true;
@@ -175,28 +271,28 @@ class TrickController extends AbstractController
                     } else {
                         $points += $tr->getCard4()->getPoints();
                     }
-                    dump($points . " " . $winner . " " . $tr->getCard1()->getPoints() . " " . $tr->getCard1()->getSuit() . " " . $tr->getCard1()->getRank());
 
                     $windex = (($one_three_us? 0 : 1) + $winner) % 2;
                     $add_points[$windex] += $points;
 
+                    $meld = $tr->getMeld();
+                    $add_points[$windex + 2] += $meld;
+
                     $entityManager->remove($tr);
                 }
 
-
-
                 $last_trick_points = $game->getTricks()->last()->getWinner() % 2;
-                dump($last_trick_points);
                 $add_points[(($one_three_us? 0 : 1) + $last_trick_points) % 2] += 10;
 
                 $playing_side = array_search(true, $game->getTrumpChosen()) % 2;
-                if ($add_points[$playing_side] <= $add_points[1-$playing_side]) {
-                    $add_points = [0, 0];
-                    $add_points[1-$playing_side] = 162;
+                if ($add_points[$playing_side] <= $add_points[1-$playing_side]) { // Wet
+                    $add_points[1-$playing_side] = 162; //All points to other team
+                    $add_points[2 + 1 - $playing_side] += $add_points[2 + $playing_side]; // Meld to other team
+                    $add_points[$playing_side] = 0;
+                    $add_points[2 + $playing_side] = 0;
                 }
 
                 $game->addPoints($add_points);
-                dump($game->getPoints());
                 $firstTrick = $game->getTricks()->first();
                 $game->setTricks(new ArrayCollection()); // reset hand by removing all tricks
 
@@ -225,7 +321,6 @@ class TrickController extends AbstractController
                 $newTrick->setPlayer4($players[0]);
                 $trick->getGame()->addTrick($newTrick);
 
-//                shuffle new trump
                 $game ->resetTrump();
 
             } else {

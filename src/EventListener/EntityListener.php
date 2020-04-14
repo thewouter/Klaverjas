@@ -25,7 +25,7 @@ class EntityListener {
         }
     }
 
-    public function postRemove(LifecycleEventArgs $event) {
+    public function preRemove(LifecycleEventArgs $event) {
         $this->sender->sendUpdate($event->getEntity()->getClassname(), MercureSender::METHOD_DELETE, $event->getEntity()->toArray());
     }
 }

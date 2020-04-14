@@ -69,6 +69,7 @@ class Trick
 
     public static $NORMAL_ORDER = [0 => '7', 1 => '8', 2 => '9', 3 => 'j', 4 => 'q', 5 => 'k', 6 => 't', 7 => 'a'];
     public static $TRUMP_ORDER = [0 => '7', 1 => '8', 2 => 'q', 3 => 'k', 4 => 't', 5 => 'a', 6 => '9', 7 => 'j'];
+    public static $MELD_ORDER = [0 => '7', 1 => '8', 2 => '9', 3 => 't', 4 => 'j', 5 => 'q', 6 => 'k', 7 => 'a'];
 
     public function getId(): ?int
     {
@@ -279,6 +280,9 @@ class Trick
     }
 
     public function getWinner() {
+        if(is_null($this->getCard4())) {
+            return null;
+        }
         if($this->getGame()->getTrump() == $this->getCard1()->getSuit()){
             return $this->getWinnerTrump(0);
         } else {
@@ -310,6 +314,57 @@ class Trick
         }
     }
 
+    public function getMeld() {
+        if(is_null($this->getCard4())) {
+            return 0;
+        }
+        $cards = [
+            $this->getCard1(),
+            $this->getCard2(),
+            $this->getCard3(),
+            $this->getCard4(),
+        ];
+
+        $meld = 0;
+
+        $suits = ['d', 's', 'h', 'c'];
+        foreach ($suits as $suit) {
+            $per_suit = array_filter($cards, function ($c) use ($suit) {
+                return $c->getSuit() == $suit;
+            });
+
+            $keys = array_map(function ($c) {
+                return array_search($c->getRank(), self::$MELD_ORDER);
+            }, $per_suit);
+            sort($keys);
+
+            if (count($keys) == 4){
+                if($keys[1] == ($keys[0] + 1) && $keys[2] == ($keys[1] + 1) && $keys[3] == ($keys[2] + 1)) {
+                    $meld += 50;
+                } elseif ($keys[1] == ($keys[0] + 1) && $keys[2] == ($keys[1] + 1)) {
+                    $meld += 20;
+                } elseif ($keys[2] == ($keys[1] + 1) && $keys[3] == ($keys[2] + 1)) {
+                    $meld += 20;
+                }
+            } elseif (count($keys) == 3) {
+                if ($keys[1] == ($keys[0] + 1) && $keys[2] == ($keys[1] + 1)) {
+                    $meld += 20;
+                }
+            }
+
+            if ($suit == $this->getGame()->getTrump()){
+                $ranks = array_map(function ($c) {
+                    return $c->getRank();
+                }, $per_suit);
+                if (in_array('k', $ranks) && in_array('q', $ranks)) {
+                    $meld += 20;
+                }
+            }
+        }
+
+        return $meld;
+    }
+
     public function toArray() {
         return array(
             'id' => $this->getId(),
@@ -323,6 +378,8 @@ class Trick
             'card_3' => is_null($this->getCard3()) ? false : $this->getCard3()->toArray(),
             'card_4' => is_null($this->getCard4()) ? false : $this->getCard4()->toArray(),
             'turn' => $this->getNextPlayer(),
+            'meld' => $this->getMeld(),
+            'winner' => $this->getWinner(),
         );
     }
 }

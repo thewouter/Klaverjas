@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -185,7 +184,7 @@ class Game
     }
 
     public function getPrevFirstPlayer() {
-        if ($this->getTricks()->count() > 2 ){
+        if ($this->getTricks()->count() > 1 ){
             $current_trick = $this->getTricks()->get($this->getTricks()->count() - 2 );
             $first_player = $current_trick->getPlayer1();
             switch ($first_player->getId()) {

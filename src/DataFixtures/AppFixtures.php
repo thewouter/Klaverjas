@@ -37,7 +37,7 @@ class AppFixtures extends Fixture
 
             for($j = 0; $j < 5; $j++) {
                 $game = new Game();
-                $game->setPoints([$faker->randomDigitNotNull*100, $faker->randomDigitNotNull*100]);
+                $game->setPoints([[$faker->randomDigitNotNull*100, $faker->randomDigitNotNull*100, 50, 20]]);
                 $game->resetTrump();
                 $game->setTrumpChosen([false, true, null, null]);
                 $room->addGame($game);
@@ -59,6 +59,11 @@ class AppFixtures extends Fixture
         $manager->flush();
     }
 
+    /**
+     * Setup the 32 cards used for klaverjas, Don't worry, generated with python:p
+     *
+     * @param ObjectManager $manager
+     */
     private function setupCards(ObjectManager $manager){
         $h7 = new Card();
         $h7->setRank('7');
