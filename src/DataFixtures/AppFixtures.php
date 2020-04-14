@@ -54,7 +54,7 @@ class AppFixtures extends Fixture
             $manager->persist($room);
         }
 
-        $this->setupCards($manager);
+        self::setupCards($manager);
 
         $manager->flush();
     }
@@ -64,7 +64,7 @@ class AppFixtures extends Fixture
      *
      * @param ObjectManager $manager
      */
-    private function setupCards(ObjectManager $manager){
+    public static function setupCards(ObjectManager $manager){
         $h7 = new Card();
         $h7->setRank('7');
         $h7->setSuit('h');
