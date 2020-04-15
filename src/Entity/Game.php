@@ -202,6 +202,25 @@ class Game
         return 0;
     }
 
+    public function getChair() {
+        if ($this->getTricks()->count() > 0 ){
+            $current_trick = $this->getTricks()->get(0);
+            $first_player = $current_trick->getPlayer1();
+            switch ($first_player->getId()) {
+                case $this->getRoom()->getUs1()->getId():
+                    return 0;
+                case $this->getRoom()->getThem1()->getId():
+                    return 1;
+                case $this->getRoom()->getUs2()->getId():
+                    return 2;
+                case $this->getRoom()->getThem2()->getId():
+                    return 3;
+            }
+        }
+
+        return 0;
+    }
+
     public function toArray() {
         return [
             'id' => $this->getId(),
@@ -214,6 +233,7 @@ class Game
             'trump_chosen' => $this->getTrumpChosen(),
             'first_player' => $this->getFirstPlayer(),
             'prev_first_player' => $this->getPrevFirstPlayer(),
+            'chair' => $this->getChair(),
         ];
     }
 }

@@ -232,8 +232,10 @@ class TrickController extends AbstractController
                 $one_three_us = 0;
 
                 foreach ($game->getTricks() as $tr){
-                    $winner = $trick->getWinner();
+                    $winner = $tr->getWinner();
                     $one_three_us = true;
+
+
 
                     $first_player = $tr->getPlayer1();
                     switch ($first_player->getId()){
@@ -284,8 +286,8 @@ class TrickController extends AbstractController
                 $last_trick_points = $game->getTricks()->last()->getWinner() % 2;
                 $add_points[(($one_three_us? 0 : 1) + $last_trick_points) % 2] += 10;
 
-                $playing_side = array_search(true, $game->getTrumpChosen()) % 2;
-                if ($add_points[$playing_side] <= $add_points[1-$playing_side]) { // Wet
+                $playing_side = (array_search(true, $game->getTrumpChosen()) + $game->getChair()) % 2;
+                if ($add_points[$playing_side] + $add_points[$playing_side + 2] <= $add_points[1-$playing_side] + $add_points[1-$playing_side + 2]) { // Wet
                     $add_points[1-$playing_side] = 162; //All points to other team
                     $add_points[2 + 1 - $playing_side] += $add_points[2 + $playing_side]; // Meld to other team
                     $add_points[$playing_side] = 0;
@@ -319,7 +321,7 @@ class TrickController extends AbstractController
                 $newTrick->setPlayer2($players[2]);
                 $newTrick->setPlayer3($players[3]);
                 $newTrick->setPlayer4($players[0]);
-                $trick->getGame()->addTrick($newTrick);
+                $game->addTrick($newTrick);
 
                 $game ->resetTrump();
 

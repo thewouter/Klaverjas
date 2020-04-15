@@ -324,9 +324,7 @@ class Trick
             $this->getCard3(),
             $this->getCard4(),
         ];
-
         $meld = 0;
-
         $suits = ['d', 's', 'h', 'c'];
         foreach ($suits as $suit) {
             $per_suit = array_filter($cards, function ($c) use ($suit) {
@@ -336,6 +334,7 @@ class Trick
             $keys = array_map(function ($c) {
                 return array_search($c->getRank(), self::$MELD_ORDER);
             }, $per_suit);
+
             sort($keys);
 
             if (count($keys) == 4){
@@ -361,7 +360,6 @@ class Trick
                 }
             }
         }
-
         return $meld;
     }
 
