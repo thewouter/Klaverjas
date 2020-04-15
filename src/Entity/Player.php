@@ -22,7 +22,7 @@ class Player
 
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Card", mappedBy="client", cascade={"persist", "remove"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\Card", mappedBy="client")
      */
     private $cards;
 
