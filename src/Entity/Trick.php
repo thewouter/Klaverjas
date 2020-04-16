@@ -264,16 +264,16 @@ class Trick
         $trump = $this->getGame()->getTrump();
         foreach (range(0, 7) as $key) {
             $value = self::$TRUMP_ORDER[$key];
-            if($this->getCard1()->getRank() == $value && $this->getCard1()->getSuit() == $trump){
+            if(!is_null($this->getCard1()) && $this->getCard1()->getRank() == $value && $this->getCard1()->getSuit() == $trump){
                 $winner = 0;
             }
-            if($this->getCard2()->getRank() == $value && $this->getCard2()->getSuit() == $trump){
+            if(!is_null($this->getCard2()) && $this->getCard2()->getRank() == $value && $this->getCard2()->getSuit() == $trump){
                 $winner = 1;
             }
-            if($this->getCard3()->getRank() == $value && $this->getCard3()->getSuit() == $trump){
+            if(!is_null($this->getCard3()) && $this->getCard3()->getRank() == $value && $this->getCard3()->getSuit() == $trump){
                 $winner = 2;
             }
-            if($this->getCard4()->getRank() == $value && $this->getCard4()->getSuit() == $trump){
+            if(!is_null($this->getCard4()) && $this->getCard4()->getRank() == $value && $this->getCard4()->getSuit() == $trump){
                 $winner = 3;
             }
         }
@@ -281,33 +281,33 @@ class Trick
     }
 
     public function getWinner() {
-        if(is_null($this->getCard4())) {
+        if(is_null($this->getCard1())) {
             return null;
         }
-        if($this->getGame()->getTrump() == $this->getCard1()->getSuit()){
+        if(!is_null($this->getCard1()) && $this->getGame()->getTrump() == $this->getCard1()->getSuit()){
             return $this->getWinnerTrump(0);
         } else {
-            if($this->getCard2()->getSuit() == $this->getGame()->getTrump()){
+            if(!is_null($this->getCard2()) && $this->getCard2()->getSuit() == $this->getGame()->getTrump()){
                 return $this->getWinnerTrump(1);
-            } elseif ($this->getCard3()->getSuit() == $this->getGame()->getTrump()) {
+            } elseif (!is_null($this->getCard3()) && $this->getCard3()->getSuit() == $this->getGame()->getTrump()) {
                 return $this->getWinnerTrump(2);
-            } elseif ($this->getCard4()->getSuit() == $this->getGame()->getTrump()){
+            } elseif (!is_null($this->getCard4()) && $this->getCard4()->getSuit() == $this->getGame()->getTrump()){
                 return $this->getWinnerTrump(3);
             }
             $winner = 0;
             $playedSuit = $this->getCard1()->getSuit();
             foreach (range(0, 7) as $key) {
                 $value = self::$NORMAL_ORDER[$key];
-                if($this->getCard1()->getRank() == $value && $this->getCard1()->getSuit() == $playedSuit){
+                if(!is_null($this->getCard1()) && $this->getCard1()->getRank() == $value && $this->getCard1()->getSuit() == $playedSuit){
                     $winner = 0;
                 }
-                if($this->getCard2()->getRank() == $value && $this->getCard2()->getSuit() == $playedSuit){
+                if(!is_null($this->getCard2()) && $this->getCard2()->getRank() == $value && $this->getCard2()->getSuit() == $playedSuit){
                     $winner = 1;
                 }
-                if($this->getCard3()->getRank() == $value && $this->getCard3()->getSuit() == $playedSuit){
+                if(!is_null($this->getCard3()) && $this->getCard3()->getRank() == $value && $this->getCard3()->getSuit() == $playedSuit){
                     $winner = 2;
                 }
-                if($this->getCard4()->getRank() == $value && $this->getCard4()->getSuit() == $playedSuit){
+                if(!is_null($this->getCard4()) && $this->getCard4()->getRank() == $value && $this->getCard4()->getSuit() == $playedSuit){
                     $winner = 3;
                 }
             }

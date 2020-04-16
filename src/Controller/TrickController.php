@@ -159,6 +159,7 @@ class TrickController extends AbstractController
             $available_of_suit = count(array_filter($player->getCards()->toArray(), function ($c) use ($requested_suit) {
                 return $c->getSuit() == $requested_suit;
             }));
+            $mate_winning = ($trick->getWinner() + 2 == count($played_cards));
 
             $failed = false;
             $failed_reason = '';
@@ -185,7 +186,13 @@ class TrickController extends AbstractController
                 } else {
                     if ($trump_played) {
                         if ($under_played){
-                            if ($undertrump_allowed && $num_not_trump_in_hand == 0) {
+                            if ($undertrump_allowed) {
+                                if ($num_not_trump_in_hand == 0) {
+                                    // OK
+                                } else {
+                                    $failed = true;
+                                    $failed_reason = 'undertrump not allowed when other card possible';
+                                }
                                 // OK
                             } else {
                                 $failed = true;
@@ -196,8 +203,16 @@ class TrickController extends AbstractController
                         }
                     } else {
                         if ($num_trump_in_hand > 0) {
-                            $failed = true;
-                            $failed_reason = 'trumping is obligated';
+                            if ($mate_winning) {
+                                // OK
+                            } else {
+                                if ($undertrump_allowed && $num_not_trump_in_hand > 0) {
+                                    // OK
+                                } else {
+                                    $failed = true;
+                                    $failed_reason = 'trumping is obligated';
+                                }
+                            }
                         } else {
                             // OK
                         }
@@ -212,8 +227,6 @@ class TrickController extends AbstractController
                 ], Response::HTTP_BAD_REQUEST);
             }
         }
-
-
 
 
 
