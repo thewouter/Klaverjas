@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use function Clue\StreamFilter\fun;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\TrickRepository")
@@ -360,6 +361,21 @@ class Trick
                 }
             }
         }
+
+        $ranks = array_map(function ($card) {
+            return $card->getRank();
+        }, $cards);
+
+        if (count($ranks) == 4) {
+            if($ranks[0] == $ranks[1] && $ranks[1] == $ranks[2] && $ranks[2] == $ranks[3]) {
+                if ($ranks[0] == 'j') {
+                    $meld += 200;
+                } else {
+                    $meld += 100;
+                }
+            }
+        }
+
         return $meld;
     }
 
