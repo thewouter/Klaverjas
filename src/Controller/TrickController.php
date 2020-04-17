@@ -46,6 +46,8 @@ class TrickController extends AbstractController
      * @return JsonResponse
      */
     public function playCard(Request $request, ClientRepository $clientRepository, PlayerRepository $playerRepository, CardRepository $cardRepository, EntityManagerInterface $entityManager, MercureSender $sender, Trick $trick){
+        $entityManager->getConnection()->beginTransaction();
+
         $data = json_decode($request->getContent(), true);
 
         if (!array_key_exists('client', $data)) {
@@ -362,6 +364,12 @@ class TrickController extends AbstractController
         }
 
         $entityManager->flush();
+        try {
+            $entityManager->getConnection()->commit();
+        } catch (\Exception $e) {
+            $entityManager->getConnection()->rollBack();
+            throw $e;
+        }
 
         return new JsonResponse($trick->getGame()->toArray(), Response::HTTP_OK);
     }
