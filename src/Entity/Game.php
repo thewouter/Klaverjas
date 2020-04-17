@@ -158,9 +158,13 @@ class Game
         return 'game';
     }
 
-    public function resetTrump() {
-        $suits = ['c', 'd', 'h', 's'];
-        $this->setTrump($suits[array_rand($suits)]);
+    public function resetTrump($trump = false) {
+        if ($trump === false){
+            $suits = ['c', 'd', 'h', 's'];
+            $this->setTrump($suits[array_rand($suits)]);
+        } else {
+            $this->setTrump($this->trump);
+        }
         $this->setTrumpChosen([null, null, null, null]);
     }
 

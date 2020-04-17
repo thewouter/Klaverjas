@@ -169,7 +169,7 @@ class GameController extends AbstractController
 
         $game->addTrick($trick);
 
-        $game->resetTrump();
+        $game->resetTrump('c');
 
         $game->getRoom()->setInGame(true);
 
