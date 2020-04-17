@@ -163,7 +163,7 @@ class Game
             $suits = ['c', 'd', 'h', 's'];
             $this->setTrump($suits[array_rand($suits)]);
         } else {
-            $this->setTrump($this->trump);
+            $this->setTrump($trump);
         }
         $this->setTrumpChosen([null, null, null, null]);
     }
