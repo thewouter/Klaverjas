@@ -17,7 +17,7 @@ class Client
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, options={"collation":"utf8_bin"})
      */
     private $name;
 
