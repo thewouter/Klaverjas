@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ClientRepository")
@@ -18,6 +19,14 @@ class Client
 
     /**
      * @ORM\Column(type="string", length=255, options={"collation":"utf8_bin"})
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 49,
+     *      minMessage = "Your name must be at least {{ limit }} characters long",
+     *      maxMessage = "Your name cannot be longer than {{ limit }} characters",
+     *      allowEmptyString = false
+     * )
+     *
      */
     private $name;
 
