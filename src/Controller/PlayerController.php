@@ -58,7 +58,7 @@ class PlayerController extends AbstractController
         $client = $repository->find($client);
 
         if(!is_null($player->getClient())) {
-            return new JsonResponse($player->toArray(), Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['status' => 'FAILED', 'reason' => 'already client at this seat'], Response::HTTP_BAD_REQUEST);
         }
 
         if (!empty($client)){

@@ -40,6 +40,9 @@ class RoomController extends AbstractController
 
         $room = new Room();
         $room->setName($name);
+        $game = new Game();
+        $room->addGame($game);
+        $em->persist($game);
         $em->persist($room);
         $em->flush();
 
@@ -183,11 +186,11 @@ class RoomController extends AbstractController
         }
         $entityManager->flush();
 
-        if($room->isFull()) {
-            $game = new Game();
-            $room->addGame($game);
-
-        }
+//        if($room->isFull()) {
+//            $game = new Game();
+//            $room->addGame($game);
+//
+//        }
 
         return new JsonResponse($room->toArray(), Response::HTTP_OK);
     }

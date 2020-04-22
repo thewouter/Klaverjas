@@ -252,6 +252,10 @@ class GameController extends AbstractController
         if ($state == 2) {
             $game->setTricks(new ArrayCollection()); // reset hand by removing all tricks
             $game->getRoom()->setInGame(false);
+            $game->getRoom()->getUs1()->removeAllCards();
+            $game->getRoom()->getUs2()->removeAllCards();
+            $game->getRoom()->getThem1()->removeAllCards();
+            $game->getRoom()->getThem2()->removeAllCards();
             $entityManager->flush();
             return new JsonResponse($game->toArray(), Response::HTTP_OK);
         }
