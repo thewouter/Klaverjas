@@ -214,6 +214,30 @@ class GameController extends AbstractController
 
             $game->addPoints([162,0,20,0]);
             $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
+            $game->addPoints([162,0,20,0]);
+            $game->addPoints([80,82,0,70]);
 
             $game->getRoom()->getUs1()->setClient(null);
             $game->getRoom()->getUs2()->setClient(null);
