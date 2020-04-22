@@ -14,6 +14,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\SemaphoreStore;
 use Symfony\Component\Routing\Annotation\Route;
 use function Clue\StreamFilter\fun;
 use function Sodium\add;
@@ -46,11 +48,20 @@ class TrickController extends AbstractController
      * @return JsonResponse
      */
     public function playCard(Request $request, ClientRepository $clientRepository, PlayerRepository $playerRepository, CardRepository $cardRepository, EntityManagerInterface $entityManager, MercureSender $sender, Trick $trick){
-        $entityManager->getConnection()->beginTransaction();
-
+        $store = new SemaphoreStore();
+        $factory = new LockFactory($store);
+        $lock = $factory->createLock('trick-' . strval($trick->getId()), 10);
+        $lock->acquire();
+        if (!$lock->acquire()) {
+            return new JsonResponse([
+                'status' => 'FAILED',
+                'message' => 'trick locked',
+            ], Response::HTTP_BAD_REQUEST);
+        }
         $data = json_decode($request->getContent(), true);
 
         if (!array_key_exists('client', $data)) {
+            $lock->release();
             return new JsonResponse([
                 'status' => 'FAILED',
                 'message' => 'No user provided',
@@ -58,6 +69,7 @@ class TrickController extends AbstractController
         }
 
         if (!array_key_exists('card', $data)) {
+            $lock->release();
             return new JsonResponse([
                 'status' => 'FAILED',
                 'message' => 'No card provided',
@@ -67,6 +79,7 @@ class TrickController extends AbstractController
         $client = $clientRepository->find($data['client']);
 
         if(is_null($client)) {
+            $lock->release();
             return new JsonResponse([
                 'status' => 'FAILED',
                 'message' => 'User not found',
@@ -79,6 +92,7 @@ class TrickController extends AbstractController
         $card = $cardRepository->find($data['card']);
 
         if(is_null($card)) {
+            $lock->release();
             return new JsonResponse([
                 'status' => 'FAILED',
                 'message' => 'Card not found',
@@ -86,6 +100,7 @@ class TrickController extends AbstractController
         }
 
         if (!in_array($card, $player->getCards()->toArray())){
+            $lock->release();
             return new JsonResponse([
                 'status' => 'FAILED',
                 'message' => 'Card not playable by User',
@@ -93,6 +108,7 @@ class TrickController extends AbstractController
         }
 
         if(!$trick->getGame()->getRoom()->hasPlayer($player)) {
+            $lock->release();
             return new JsonResponse([
                 'status' => 'FAILED',
                 'message' => 'User not in the game of this trick',
@@ -100,6 +116,7 @@ class TrickController extends AbstractController
         }
 
         if(!$trick->getGame()->getTrumpChosen()) {
+            $lock->release();
             return new JsonResponse([
                 'status' => 'FAILED',
                 'message' => 'Trump not yet chosen',
@@ -109,6 +126,7 @@ class TrickController extends AbstractController
         $currentPlayer = $trick->getCurrentPlayer();
 
         if ($currentPlayer === false) {
+            $lock->release();
             return new JsonResponse([
                 'status' => 'FAILED',
                 'message' => 'Trick already completed',
@@ -116,6 +134,7 @@ class TrickController extends AbstractController
         }
 
         if ($currentPlayer->getId() != $player->getId()) {
+            $lock->release();
             return new JsonResponse([
                 'status' => 'FAILED',
                 'message' => 'Not this players turn',
@@ -223,6 +242,7 @@ class TrickController extends AbstractController
             }
 
             if ($failed) {
+                $lock->release();
                 return new JsonResponse([
                     'status' => 'FAILED',
                     'reason' => $failed_reason
@@ -362,15 +382,9 @@ class TrickController extends AbstractController
             $sender->sendUpdate($trick->getGame()->getClassName(), MercureSender::METHOD_PATCH, $trick->getGame()->toArray());
 
         }
-
         $entityManager->flush();
-        try {
-            $entityManager->getConnection()->commit();
-        } catch (\Exception $e) {
-            $entityManager->getConnection()->rollBack();
-            throw $e;
-        }
 
+        $lock->release();
         return new JsonResponse($trick->getGame()->toArray(), Response::HTTP_OK);
     }
 }
