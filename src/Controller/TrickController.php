@@ -58,6 +58,7 @@ class TrickController extends AbstractController
                 'message' => 'trick locked',
             ], Response::HTTP_BAD_REQUEST);
         }
+
         $data = json_decode($request->getContent(), true);
 
         if (!array_key_exists('client', $data)) {
@@ -265,12 +266,15 @@ class TrickController extends AbstractController
                 $game = $trick->getGame();
                 $add_points = [0, 0, 0, 0];
                 $one_three_us = 0;
+                $pit = true;
+                $playing_side = (array_search(true, $game->getTrumpChosen()) + $game->getChair()) % 2;
 
                 foreach ($game->getTricks() as $tr){
+                    if (is_null($tr->getCard1())) { // legacy
+                        continue;
+                    }
                     $winner = $tr->getWinner();
                     $one_three_us = true;
-
-
 
                     $first_player = $tr->getPlayer1();
                     switch ($first_player->getId()){
@@ -310,8 +314,11 @@ class TrickController extends AbstractController
                     }
 
                     $windex = (($one_three_us? 0 : 1) + $winner) % 2;
-                    $add_points[$windex] += $points;
 
+                    if ($windex != $playing_side){
+                        $pit = false;
+                    }
+                    $add_points[$windex] += $points;
                     $meld = $tr->getMeld();
                     $add_points[$windex + 2] += $meld;
 
@@ -321,7 +328,10 @@ class TrickController extends AbstractController
                 $last_trick_points = $game->getTricks()->last()->getWinner() % 2;
                 $add_points[(($one_three_us? 0 : 1) + $last_trick_points) % 2] += 10;
 
-                $playing_side = (array_search(true, $game->getTrumpChosen()) + $game->getChair()) % 2;
+                if ($pit) {
+                    $add_points[$playing_side] += 100;
+                }
+
                 if ($add_points[$playing_side] + $add_points[$playing_side + 2] <= $add_points[1-$playing_side] + $add_points[1-$playing_side + 2]) { // Wet
                     $add_points[1-$playing_side] = 162; //All points to other team
                     $add_points[2 + 1 - $playing_side] += $add_points[2 + $playing_side]; // Meld to other team
