@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Constraints\Json;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -62,10 +63,11 @@ class ClientController extends AbstractController {
     /**
      * @Route("/{client}/logout", name="player_logout")
      * @param Client $client
-     * @param RoomRepository $roomRepository
+     * @param PlayerRepository $playerRepository
      * @param EntityManagerInterface $entityManager
      */
-    public function logout(Client $client, RoomRepository $roomRepository, EntityManagerInterface $entityManager){
-        RoomController::removeClientFromAllRooms($client, $entityManager, $roomRepository);
+    public function logout(Client $client, PlayerRepository $playerRepository, EntityManagerInterface $entityManager){
+        RoomController::removeClientFromAllPlayers($client, $entityManager, $playerRepository);
+        return new JsonResponse(['status' => 'OK'], Response::HTTP_OK);
     }
 }
